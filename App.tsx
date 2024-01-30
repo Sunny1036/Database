@@ -17,6 +17,8 @@ import {
   View,
 } from 'react-native';
 
+import { createStackNavigator } from '@react-navigation/stack';
+import { NavigationContainer } from '@react-navigation/native';
 import {
   Colors,
   DebugInstructions,
@@ -24,6 +26,11 @@ import {
   LearnMoreLinks,
   ReloadInstructions,
 } from 'react-native/Libraries/NewAppScreen';
+import UserInterface from './src/UserInterface';
+import ViewDataScreen from './src/ViewDataScreen';
+import Apicall from './src/Apicall';
+import UserDataComponent from './src/UserDataComponent';
+import ExampleComponent from './src/ExampleComponent';
 
 type SectionProps = PropsWithChildren<{
   title: string;
@@ -55,6 +62,8 @@ function Section({children, title}: SectionProps): React.JSX.Element {
   );
 }
 
+const Stack = createStackNavigator();
+
 function App(): React.JSX.Element {
   const isDarkMode = useColorScheme() === 'dark';
 
@@ -63,36 +72,17 @@ function App(): React.JSX.Element {
   };
 
   return (
-    <SafeAreaView style={backgroundStyle}>
-      <StatusBar
-        barStyle={isDarkMode ? 'light-content' : 'dark-content'}
-        backgroundColor={backgroundStyle.backgroundColor}
-      />
-      <ScrollView
-        contentInsetAdjustmentBehavior="automatic"
-        style={backgroundStyle}>
-        <Header />
-        <View
-          style={{
-            backgroundColor: isDarkMode ? Colors.black : Colors.white,
-          }}>
-          <Section title="Step One">
-            Edit <Text style={styles.highlight}>App.tsx</Text> to change this
-            screen and then come back to see your edits.
-          </Section>
-          <Section title="See Your Changes">
-            <ReloadInstructions />
-          </Section>
-          <Section title="Debug">
-            <DebugInstructions />
-          </Section>
-          <Section title="Learn More">
-            Read the docs to discover what to do next:
-          </Section>
-          <LearnMoreLinks />
-        </View>
-      </ScrollView>
-    </SafeAreaView>
+    <View>
+    {/* <NavigationContainer>
+     <Stack.Navigator initialRouteName="UserInterface">
+       <Stack.Screen name="UserInterface" component={UserInterface} />
+      <Stack.Screen name="ViewDataScreen" component={ViewDataScreen} />
+      </Stack.Navigator>
+   </NavigationContainer>  */}
+       <Apicall/>
+      <UserDataComponent/>
+      </View>
+  // <ExampleComponent/>
   );
 }
 

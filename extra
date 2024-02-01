@@ -1,0 +1,55 @@
+import React, { useEffect, useState } from 'react';
+import { View, Text, Button } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+
+const LocalDatabaseExample = () => {
+  const [userData, setUserData] = useState(null);
+
+  useEffect(() => {
+    loadData();
+  }, []);
+
+  const loadData = async () => {
+    try {
+      const jsonValue = await AsyncStorage.getItem('data');
+      if (jsonValue != null) {
+        setUserData(JSON.parse(jsonValue));
+      }
+    } catch (error) {
+      console.error('Error reading data from AsyncStorage: ', error);
+    }
+  };
+
+  const saveData = async () => {
+    try {
+      const data = {
+        users: [
+          { id: 1, name: 'John Doe', email: 'john@example.com' },
+          { id: 2, name: 'Jane Doe', email: 'jane@example.com' }
+        ]
+      };
+
+      await AsyncStorage.setItem('data', JSON.stringify(data));
+      setUserData(data);
+    } catch (error) {
+      console.error('Error saving data to AsyncStorage: ', error);
+    }
+  };
+
+  return (
+    <View>
+      <Text>Local JSON Database Example</Text>
+      {userData && (
+        <View>
+          <Text>User Data:</Text>
+          {userData.users.map((user) => (
+            <Text key={user.id}>{`${user.name} - ${user.email}`}</Text>
+          ))}
+        </View>
+      )}
+      <Button title="Save Data" onPress={saveData} />
+    </View>
+  );
+};
+
+export default LocalDatabaseExample;

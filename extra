@@ -1,55 +1,47 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect } from 'react';
 import { View, Text, Button } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-const LocalDatabaseExample = () => {
-  const [userData, setUserData] = useState(null);
-
-  useEffect(() => {
-    loadData();
-  }, []);
-
-  const loadData = async () => {
-    try {
-      const jsonValue = await AsyncStorage.getItem('data');
-      if (jsonValue != null) {
-        setUserData(JSON.parse(jsonValue));
-      }
-    } catch (error) {
-      console.error('Error reading data from AsyncStorage: ', error);
-    }
-  };
-
+const TestAsyncStorage = () => {
   const saveData = async () => {
     try {
-      const data = {
-        users: [
-          { id: 1, name: 'John Doe', email: 'john@example.com' },
-          { id: 2, name: 'Jane Doe', email: 'jane@example.com' }
-        ]
-      };
-
-      await AsyncStorage.setItem('data', JSON.stringify(data));
-      setUserData(data);
+      await AsyncStorage.setItem('testKey', 'Hello, AsyncStorage!');
+      console.log('Data saved successfully!');
     } catch (error) {
       console.error('Error saving data to AsyncStorage: ', error);
     }
   };
 
+  const retrieveData = async () => {
+    try {
+      const value = await AsyncStorage.getItem('testKey');
+      console.log('Retrieved data:', value);
+    } catch (error) {
+      console.error('Error retrieving data from AsyncStorage: ', error);
+    }
+  };
+
+  const clearData = async () => {
+    try {
+      await AsyncStorage.removeItem('testKey');
+      console.log('Data cleared successfully!');
+    } catch (error) {
+      console.error('Error clearing data from AsyncStorage: ', error);
+    }
+  };
+
+  useEffect(() => {
+    retrieveData();
+  }, []); // Run once on component mount
+
   return (
-    <View>
-      <Text>Local JSON Database Example</Text>
-      {userData && (
-        <View>
-          <Text>User Data:</Text>
-          {userData.users.map((user) => (
-            <Text key={user.id}>{`${user.name} - ${user.email}`}</Text>
-          ))}
-        </View>
-      )}
+    <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+      <Text>AsyncStorage Test</Text>
       <Button title="Save Data" onPress={saveData} />
+      <Button title="Retrieve Data" onPress={retrieveData} />
+      <Button title="Clear Data" onPress={clearData} />
     </View>
   );
 };
 
-export default LocalDatabaseExample;
+export default TestAsyncStorage;

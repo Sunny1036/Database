@@ -1,6 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, Button } from 'react-native';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import { FileSystem } from 'react-native-unimodules';
+
+const dataFilePath = `${FileSystem.documentDirectory}data.json`;
 
 const LocalDatabaseExample = () => {
   const [userData, setUserData] = useState(null);
@@ -11,12 +13,11 @@ const LocalDatabaseExample = () => {
 
   const loadData = async () => {
     try {
-      const jsonValue = await AsyncStorage.getItem('data');
-      if (jsonValue != null) {
-        setUserData(JSON.parse(jsonValue));
-      }
+      const fileContent = await FileSystem.readAsStringAsync(dataFilePath);
+      const parsedData = JSON.parse(fileContent);
+      setUserData(parsedData);
     } catch (error) {
-      console.error('Error reading data from AsyncStorage: ', error);
+      console.error('Error reading data from file: ', error);
     }
   };
 
@@ -29,31 +30,30 @@ const LocalDatabaseExample = () => {
         ]
       };
 
-      await AsyncStorage.setItem('data', JSON.stringify(data));
+      await FileSystem.writeAsStringAsync(dataFilePath, JSON.stringify(data));
       setUserData(data);
     } catch (error) {
-      console.error('Error saving data to AsyncStorage: ', error);
+      console.error('Error saving data to file: ', error);
     }
   };
 
   const retrieveData = async () => {
     try {
-      const jsonValue = await AsyncStorage.getItem('data');
-      if (jsonValue != null) {
-        setUserData(JSON.parse(jsonValue));
-      }
+      const fileContent = await FileSystem.readAsStringAsync(dataFilePath);
+      const parsedData = JSON.parse(fileContent);
+      setUserData(parsedData);
     } catch (error) {
-      console.error('Error retrieving data from AsyncStorage: ', error);
+      console.error('Error retrieving data from file: ', error);
     }
   };
 
   const clearData = async () => {
     try {
-      await AsyncStorage.removeItem('data');
+      await FileSystem.deleteAsync(dataFilePath, { idempotent: true });
       setUserData(null);
       console.log('Data cleared successfully!');
     } catch (error) {
-      console.error('Error clearing data from AsyncStorage: ', error);
+      console.error('Error clearing data from file: ', error);
     }
   };
 

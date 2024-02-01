@@ -1,12 +1,36 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { View, Text, Button } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-const TestAsyncStorage = () => {
+const LocalDatabaseExample = () => {
+  const [userData, setUserData] = useState(null);
+
+  useEffect(() => {
+    loadData();
+  }, []);
+
+  const loadData = async () => {
+    try {
+      const jsonValue = await AsyncStorage.getItem('data');
+      if (jsonValue != null) {
+        setUserData(JSON.parse(jsonValue));
+      }
+    } catch (error) {
+      console.error('Error reading data from AsyncStorage: ', error);
+    }
+  };
+
   const saveData = async () => {
     try {
-      await AsyncStorage.setItem('testKey', 'Hello, AsyncStorage!');
-      console.log('Data saved successfully!');
+      const data = {
+        users: [
+          { id: 1, name: 'John Doe', email: 'john@example.com' },
+          { id: 2, name: 'Jane Doe', email: 'jane@example.com' }
+        ]
+      };
+
+      await AsyncStorage.setItem('data', JSON.stringify(data));
+      setUserData(data);
     } catch (error) {
       console.error('Error saving data to AsyncStorage: ', error);
     }
@@ -14,8 +38,10 @@ const TestAsyncStorage = () => {
 
   const retrieveData = async () => {
     try {
-      const value = await AsyncStorage.getItem('testKey');
-      console.log('Retrieved data:', value);
+      const jsonValue = await AsyncStorage.getItem('data');
+      if (jsonValue != null) {
+        setUserData(JSON.parse(jsonValue));
+      }
     } catch (error) {
       console.error('Error retrieving data from AsyncStorage: ', error);
     }
@@ -23,20 +49,25 @@ const TestAsyncStorage = () => {
 
   const clearData = async () => {
     try {
-      await AsyncStorage.removeItem('testKey');
+      await AsyncStorage.removeItem('data');
+      setUserData(null);
       console.log('Data cleared successfully!');
     } catch (error) {
       console.error('Error clearing data from AsyncStorage: ', error);
     }
   };
 
-  useEffect(() => {
-    retrieveData();
-  }, []); // Run once on component mount
-
   return (
-    <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-      <Text>AsyncStorage Test</Text>
+    <View>
+      <Text>Local JSON Database Example</Text>
+      {userData && (
+        <View>
+          <Text>User Data:</Text>
+          {userData.users.map((user) => (
+            <Text key={user.id}>{`${user.name} - ${user.email}`}</Text>
+          ))}
+        </View>
+      )}
       <Button title="Save Data" onPress={saveData} />
       <Button title="Retrieve Data" onPress={retrieveData} />
       <Button title="Clear Data" onPress={clearData} />
@@ -44,4 +75,4 @@ const TestAsyncStorage = () => {
   );
 };
 
-export default TestAsyncStorage;
+export default LocalDatabaseExample;

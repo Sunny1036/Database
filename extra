@@ -1,78 +1,99 @@
-import React, { useEffect, useState } from 'react';
-import { View, Text, Button } from 'react-native';
-import { FileSystem } from 'react-native-unimodules';
+// DatabaseExample.js
 
-const dataFilePath = `${FileSystem.documentDirectory}data.json`;
+import React, { useEffect } from 'react';
+import { View, Text, Button, Alert } from 'react-native';
+import SQLite from 'react-native-sqlite-storage';
 
-const LocalDatabaseExample = () => {
-  const [userData, setUserData] = useState(null);
+const db = SQLite.openDatabase({ name: 'myDatabase.db', location: 'default' });
 
+const initDatabase = () => {
+  db.transaction(tx => {
+    tx.executeSql(
+      'CREATE TABLE IF NOT EXISTS tokens (id INTEGER PRIMARY KEY AUTOINCREMENT, tokenName TEXT, token TEXT)',
+      [],
+      (tx, results) => {
+        console.log('Tokens table created successfully');
+      },
+      error => {
+        console.error('Error creating tokens table: ', error);
+      }
+    );
+  });
+};
+
+const addToken = (tokenName, token) => {
+  db.transaction(tx => {
+    tx.executeSql(
+      'INSERT INTO tokens (tokenName, token) VALUES (?, ?)',
+      [tokenName, token],
+      (tx, results) => {
+        console.log('Token added successfully');
+      },
+      error => {
+        console.error('Error adding token: ', error);
+      }
+    );
+  });
+};
+
+const getTokens = () => {
+  db.transaction(tx => {
+    tx.executeSql(
+      'SELECT * FROM tokens',
+      [],
+      (tx, results) => {
+        const len = results.rows.length;
+        for (let i = 0; i < len; i++) {
+          const token = results.rows.item(i);
+          console.log(`Token ID: ${token.id}, Name: ${token.tokenName}, Token: ${token.token}`);
+        }
+      },
+      error => {
+        console.error('Error fetching tokens: ', error);
+      }
+    );
+  });
+};
+
+const clearTokens = () => {
+  Alert.alert(
+    'Clear Tokens',
+    'Are you sure you want to clear all tokens?',
+    [
+      {
+        text: 'Cancel',
+        style: 'cancel',
+      },
+      {
+        text: 'OK',
+        onPress: () => {
+          db.transaction(tx => {
+            tx.executeSql('DELETE FROM tokens', [], (tx, results) => {
+              console.log('Tokens cleared successfully');
+
+              // After clearing tokens, reset the primary key sequence
+              tx.executeSql('DELETE FROM sqlite_sequence WHERE name="tokens"');
+            });
+          });
+        },
+      },
+    ]
+  );
+};
+
+const DatabaseExample = () => {
   useEffect(() => {
-    loadData();
+    initDatabase();
   }, []);
-
-  const loadData = async () => {
-    try {
-      const fileContent = await FileSystem.readAsStringAsync(dataFilePath);
-      const parsedData = JSON.parse(fileContent);
-      setUserData(parsedData);
-    } catch (error) {
-      console.error('Error reading data from file: ', error);
-    }
-  };
-
-  const saveData = async () => {
-    try {
-      const data = {
-        users: [
-          { id: 1, name: 'John Doe', email: 'john@example.com' },
-          { id: 2, name: 'Jane Doe', email: 'jane@example.com' }
-        ]
-      };
-
-      await FileSystem.writeAsStringAsync(dataFilePath, JSON.stringify(data));
-      setUserData(data);
-    } catch (error) {
-      console.error('Error saving data to file: ', error);
-    }
-  };
-
-  const retrieveData = async () => {
-    try {
-      const fileContent = await FileSystem.readAsStringAsync(dataFilePath);
-      const parsedData = JSON.parse(fileContent);
-      setUserData(parsedData);
-    } catch (error) {
-      console.error('Error retrieving data from file: ', error);
-    }
-  };
-
-  const clearData = async () => {
-    try {
-      await FileSystem.deleteAsync(dataFilePath, { idempotent: true });
-      setUserData(null);
-      console.log('Data cleared successfully!');
-    } catch (error) {
-      console.error('Error clearing data from file: ', error);
-    }
-  };
 
   return (
     <View>
-      <Text>Local JSON Database Example</Text>
-      {userData && (
-        <View>
-          <Text>User Data:</Text>
-          {userData.users.map((user) => (
-            <Text key={user.id}>{`${user.name} - ${user.email}`}</Text>
-          ))}
-        </View>
-      )}
-      <Button title="Save Data" onPress={saveData} />
-      <Button title="Retrieve Data" onPress={retrieveData} />
-      <Button title="Clear Data" onPress={clearData} />
+      <Text>SQLite Database Example</Text>
+      <Button title="Add Token" onPress={() => addToken('SampleToken', 'abc123')} />
+      <Button title="Get Tokens" onPress={getTokens} />
+      <Button title="Clear Tokens" onPress={clearTokens} />
     </View>
   );
 };
 
-export default LocalDatabaseExample;
+export default DatabaseExample;
